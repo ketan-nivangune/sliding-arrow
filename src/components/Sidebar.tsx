@@ -130,6 +130,20 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
         />
       </div>
 
+      <div className="sidebar-section">
+        <label>
+          Canvas Roundness
+          <span>{theme.canvasRadius}px</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="64"
+          value={theme.canvasRadius}
+          onChange={(e) => update({ canvasRadius: parseInt(e.target.value, 10) })}
+        />
+      </div>
+
       <div className="sidebar-section flex-row">
         <label>Show Grid</label>
         <label className="switch">

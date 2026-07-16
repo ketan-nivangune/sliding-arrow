@@ -20,6 +20,7 @@ const DEFAULT_THEME: GameThemeConfig = {
   pathStyle: 'rounded',
   bgColor: 0xffffff,
   bgOpacity: 1,
+  canvasRadius: 12,
   showGrid: true,
   gridSize: 25,
   voucherTheme: 'purple',
@@ -165,7 +166,9 @@ export function Game({
             <div 
               className="game-canvas-container" 
               style={{ 
-                backgroundColor: `rgba(${(theme.bgColor >> 16) & 255}, ${(theme.bgColor >> 8) & 255}, ${theme.bgColor & 255}, ${theme.bgOpacity})` 
+                backgroundColor: `rgba(${(theme.bgColor >> 16) & 255}, ${(theme.bgColor >> 8) & 255}, ${theme.bgColor & 255}, ${theme.bgOpacity})`,
+                borderRadius: `${theme.canvasRadius}px`,
+                boxShadow: theme.bgOpacity === 0 ? 'none' : undefined,
               }}
             >
               <div ref={containerRef} className="canvas-mount" />

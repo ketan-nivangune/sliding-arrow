@@ -53,6 +53,7 @@ export interface GameThemeConfig {
   // Grid / Canvas Settings
   bgColor: number;
   bgOpacity: number; // 0 to 1
+  canvasRadius: number; // 0 to 40
   showGrid: boolean;
   gridSize: number;
   
