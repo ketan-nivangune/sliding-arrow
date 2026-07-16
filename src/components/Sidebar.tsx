@@ -4,6 +4,7 @@ import type { GameThemeConfig } from '../engine/types';
 interface SidebarProps {
   theme: GameThemeConfig;
   onThemeChange: (newTheme: GameThemeConfig) => void;
+  onClose: () => void;
 }
 
 const PRESET_COLORS = [
@@ -21,7 +22,7 @@ const PRESET_BGS = [
   0x111827, // Dark Navy
 ];
 
-export function Sidebar({ theme, onThemeChange }: SidebarProps) {
+export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
 
   const update = (updates: Partial<GameThemeConfig>) => {
     onThemeChange({ ...theme, ...updates });
@@ -37,8 +38,9 @@ export function Sidebar({ theme, onThemeChange }: SidebarProps) {
 
   return (
     <div className="builder-sidebar">
-      <div className="sidebar-header">
+      <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3>Arrow Style</h3>
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close settings">✕</button>
       </div>
 
       <div className="sidebar-section">
