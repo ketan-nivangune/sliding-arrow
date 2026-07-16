@@ -7,20 +7,30 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const PRESET_COLORS = [
-  0x1f5cf0, // Blue
-  0x22c55e, // Green
-  0xa855f7, // Purple
-  0xf97316, // Orange
-  0xef4444, // Red
-  0x1a1a1a, // Black
-];
-
-const PRESET_BGS = [
-  0xffffff, // White
-  0xf5f5f0, // Cream
-  0x111827, // Dark Navy
-];
+const ColorPickerInput = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => (
+  <div className="sidebar-section">
+    <label>{label}</label>
+    <label style={{
+      display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
+      padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '8px', background: 'white',
+      position: 'relative', overflow: 'hidden'
+    }}>
+      <div style={{
+        width: '24px', height: '24px', borderRadius: '50%', backgroundColor: value,
+        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)'
+      }} />
+      <span style={{ fontSize: '14px', color: '#4b5563', fontFamily: 'monospace', fontWeight: 600 }}>
+        {value.toUpperCase()}
+      </span>
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ opacity: 0, position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+      />
+    </label>
+  </div>
+);
 
 export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
 
@@ -43,19 +53,11 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close settings">✕</button>
       </div>
 
-      <div className="sidebar-section">
-        <label>Arrow Color</label>
-        <div className="color-swatches">
-          {PRESET_COLORS.map(color => (
-            <button
-              key={color}
-              className={`swatch ${theme.arrowColor === color ? 'active' : ''}`}
-              style={{ backgroundColor: '#' + color.toString(16).padStart(6, '0') }}
-              onClick={() => update({ arrowColor: color })}
-            />
-          ))}
-        </div>
-      </div>
+      <ColorPickerInput
+        label="Arrow Color"
+        value={'#' + theme.arrowColor.toString(16).padStart(6, '0')}
+        onChange={(val) => update({ arrowColor: parseInt(val.replace('#', ''), 16) })}
+      />
 
       <div className="sidebar-section">
         <label>
@@ -102,19 +104,11 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
         <h3>Canvas</h3>
       </div>
 
-      <div className="sidebar-section">
-        <label>Background Color</label>
-        <div className="color-swatches">
-          {PRESET_BGS.map(color => (
-            <button
-              key={color}
-              className={`swatch ${theme.bgColor === color ? 'active' : ''} ${color === 0xffffff ? 'border' : ''}`}
-              style={{ backgroundColor: '#' + color.toString(16).padStart(6, '0') }}
-              onClick={() => update({ bgColor: color })}
-            />
-          ))}
-        </div>
-      </div>
+      <ColorPickerInput
+        label="Background Color"
+        value={'#' + theme.bgColor.toString(16).padStart(6, '0')}
+        onChange={(val) => update({ bgColor: parseInt(val.replace('#', ''), 16) })}
+      />
 
       <div className="sidebar-section">
         <label>
@@ -179,26 +173,44 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
         <h3>Campaign Environment</h3>
       </div>
 
+      <div className="sidebar-section flex-row">
+        <label>Show Gradient (Vignette)</label>
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={theme.showVignette}
+            onChange={(e) => update({ showVignette: e.target.checked })}
+          />
+          <span className="slider round"></span>
+        </label>
+      </div>
+
+      <ColorPickerInput
+        label="Base Color"
+        value={theme.campaignBgColor || '#1a1a1a'}
+        onChange={(val) => update({ campaignBgColor: val })}
+      />
+
       <div className="sidebar-section">
         <label>Landscape Background Image</label>
-        <input 
-          type="file" 
+        <input
+          type="file"
           accept="image/*"
           onChange={(e) => handleFileUpload(e, 'campaignBgLandscape')}
           style={{ width: '100%', fontSize: '12px' }}
         />
-        {theme.campaignBgLandscape && <div style={{marginTop: '8px', fontSize: '12px', color: '#666'}}>✓ Uploaded</div>}
+        {theme.campaignBgLandscape && <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>✓ Uploaded</div>}
       </div>
 
       <div className="sidebar-section">
         <label>Portrait Background Image</label>
-        <input 
-          type="file" 
+        <input
+          type="file"
           accept="image/*"
           onChange={(e) => handleFileUpload(e, 'campaignBgPortrait')}
           style={{ width: '100%', fontSize: '12px' }}
         />
-        {theme.campaignBgPortrait && <div style={{marginTop: '8px', fontSize: '12px', color: '#666'}}>✓ Uploaded</div>}
+        {theme.campaignBgPortrait && <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>✓ Uploaded</div>}
       </div>
 
       <div className="sidebar-section">
@@ -223,8 +235,8 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
 
       <div className="sidebar-section">
         <label>Popup Theme</label>
-        <select 
-          value={theme.voucherTheme} 
+        <select
+          value={theme.voucherTheme}
           onChange={(e) => update({ voucherTheme: e.target.value as any })}
         >
           <option value="purple">Neon Purple</option>
@@ -235,21 +247,21 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
 
       <div className="sidebar-section">
         <label>Reward Value</label>
-        <input 
-          type="text" 
+        <input
+          type="text"
           style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '6px', outline: 'none' }}
-          value={theme.rewardValue} 
-          onChange={(e) => update({ rewardValue: e.target.value })} 
+          value={theme.rewardValue}
+          onChange={(e) => update({ rewardValue: e.target.value })}
         />
       </div>
 
       <div className="sidebar-section">
         <label>Voucher Label</label>
-        <input 
-          type="text" 
+        <input
+          type="text"
           style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '6px', outline: 'none' }}
-          value={theme.voucherLabel} 
-          onChange={(e) => update({ voucherLabel: e.target.value })} 
+          value={theme.voucherLabel}
+          onChange={(e) => update({ voucherLabel: e.target.value })}
         />
       </div>
 

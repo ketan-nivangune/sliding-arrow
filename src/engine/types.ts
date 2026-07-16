@@ -49,20 +49,22 @@ export interface GameThemeConfig {
   arrowThickness: number;
   arrowHeadStyle: 'triangle' | 'flat';
   pathStyle: 'rounded' | 'square';
-  
+
   // Grid / Canvas Settings
   bgColor: number;
   bgOpacity: number; // 0 to 1
   canvasRadius: number; // 0 to 40
   showGrid: boolean;
   gridSize: number;
-  
+
   // Voucher Settings
   voucherTheme: 'purple' | 'gold' | 'blue';
   rewardValue: string;
   voucherLabel: string;
-  
+
   // Campaign Environment
+  campaignBgColor: string;
+  showVignette: boolean;
   campaignBgLandscape: string | null;
   campaignBgPortrait: string | null;
   bgFit: 'cover' | 'contain';

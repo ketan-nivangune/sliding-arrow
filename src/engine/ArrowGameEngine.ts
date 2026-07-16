@@ -20,7 +20,7 @@ export class ArrowGameEngine {
   private shakeTimer = 0;
   private shakeIntensity = 0;
   private hitStopCounter = 0;
-  
+
   private currentTheme: GameThemeConfig | null = null;
 
   setCallbacks(cb: GameCallbacks) {
@@ -34,7 +34,7 @@ export class ArrowGameEngine {
     }
 
     this.app = new PIXI.Application();
-    
+
     await this.app.init({
       canvas,
       resizeTo: canvas.parentElement || window,
@@ -66,29 +66,29 @@ export class ArrowGameEngine {
     this.app.ticker.add(this.onTick.bind(this));
     this.initialized = true;
   }
-  
+
   applyTheme(theme: GameThemeConfig) {
     this.currentTheme = theme;
     if (!this.initialized) return;
-    
+
     // Update grid
     this.drawBackgroundGrid();
-    
+
     // Update lines
     for (const line of this.lines) {
       line.setTheme(theme);
     }
   }
-  
+
   private onResize = () => {
     if (!this.app || !this.rootContainer) return;
     const screenW = this.app.screen.width;
     const screenH = this.app.screen.height;
-    
+
     const scaleX = screenW / GAME_CONFIG.logicalWidth;
     const scaleY = screenH / GAME_CONFIG.logicalHeight;
     this.gameScale = Math.min(scaleX, scaleY);
-    
+
     this.rootContainer.scale.set(this.gameScale);
     this.rootContainer.x = (screenW - GAME_CONFIG.logicalWidth * this.gameScale) / 2;
     this.rootContainer.y = (screenH - GAME_CONFIG.logicalHeight * this.gameScale) / 2;
@@ -127,11 +127,11 @@ export class ArrowGameEngine {
     if (!this.currentTheme) return;
     const bg = this.backgroundGrid;
     bg.clear();
-    
+
     // Fill background color with opacity support
     bg.rect(0, 0, GAME_CONFIG.logicalWidth, GAME_CONFIG.logicalHeight);
     bg.fill({ color: this.currentTheme.bgColor, alpha: this.currentTheme.bgOpacity });
-    
+
     if (this.currentTheme.showGrid) {
       const spacing = this.currentTheme.gridSize;
       const size = 2; // Dot size
@@ -170,7 +170,7 @@ export class ArrowGameEngine {
 
   private handleClick(localX: number, localY: number) {
     if (!this.isPlaying) return;
-    
+
     for (const line of this.lines) {
       if (line.containsPoint(localX, localY)) {
         line.startForward();
@@ -178,9 +178,9 @@ export class ArrowGameEngine {
         return;
       }
     }
-    
+
     // Play tap sound ONLY if no line was hit
-    soundManager.playTap(); 
+    soundManager.playTap();
   }
 
   private triggerShake() {
@@ -196,10 +196,10 @@ export class ArrowGameEngine {
     this.shakeTimer -= delta / 60;
     const t = Math.max(0, this.shakeTimer / GAME_CONFIG.shakeDuration);
     const intensity = this.shakeIntensity * t;
-    
+
     const baseX = (this.app.screen.width - GAME_CONFIG.logicalWidth * this.gameScale) / 2;
     const baseY = (this.app.screen.height - GAME_CONFIG.logicalHeight * this.gameScale) / 2;
-    
+
     this.rootContainer.x = baseX + (Math.random() - 0.5) * intensity * 2;
     this.rootContainer.y = baseY + (Math.random() - 0.5) * intensity * 2;
   }
@@ -212,7 +212,7 @@ export class ArrowGameEngine {
 
     if (this.hitStopCounter > 0) {
       this.hitStopCounter--;
-      for (const line of this.lines) line.update(0); 
+      for (const line of this.lines) line.update(0);
       return;
     }
 
@@ -246,7 +246,7 @@ export class ArrowGameEngine {
         line.handleCollision();
         soundManager.playCollision(); // Play collision sound
         this.triggerShake();
-        this.hitStopCounter = GAME_CONFIG.hitStopFrames; 
+        this.hitStopCounter = GAME_CONFIG.hitStopFrames;
         if (!line.state.lostLifeForCollision) {
           line.state.lostLifeForCollision = true;
           this.lives--;

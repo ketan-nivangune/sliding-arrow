@@ -6,25 +6,25 @@ export class GameLine {
   state: GameLineState;
   private container: PIXI.Container;
   private graphics: PIXI.Graphics;
-  
+
   private originalPoints: Point[];
   private trackDistances: number[];
   private originalLength: number;
   private direction: Point;
   private currentTailPos: number = 0;
-  
+
   private flashTimer = 0;
   private isFlashing = false;
   private flashOn = false;
 
 
-  
+
   private theme: GameThemeConfig;
 
   constructor(id: number, points: Point[], theme: GameThemeConfig) {
     this.originalPoints = points.map(p => ({ ...p }));
     this.theme = theme;
-    
+
     this.trackDistances = [0];
     let totalLen = 0;
     for (let i = 1; i < points.length; i++) {
@@ -123,7 +123,7 @@ export class GameLine {
       cap: capStyle,
       join: joinStyle
     });
-    
+
     this.graphics.moveTo(pts[0].x, pts[0].y);
     for (let i = 1; i < pts.length; i++) {
       this.graphics.lineTo(pts[i].x, pts[i].y);
@@ -138,11 +138,11 @@ export class GameLine {
     const prev = pts[pts.length - 2];
     const angle = Math.atan2(head.y - prev.y, head.x - prev.x);
     // Make head size proportional to thickness
-    const size = Math.max(16, this.theme.arrowThickness * 1.8); 
+    const size = Math.max(16, this.theme.arrowThickness * 1.8);
 
     const tipX = head.x + Math.cos(angle) * (size * 0.5);
     const tipY = head.y + Math.sin(angle) * (size * 0.5);
-    
+
     if (this.theme.arrowHeadStyle === 'triangle') {
       const backAngle = Math.PI * 0.82;
       const leftX = tipX + Math.cos(angle + backAngle) * size;
@@ -158,14 +158,14 @@ export class GameLine {
       const leftY = tipY + Math.sin(angle + backAngle) * size;
       const rightX = tipX + Math.cos(angle - backAngle) * size;
       const rightY = tipY + Math.sin(angle - backAngle) * size;
-      
+
       // Inner points for chevron
       const innerSize = size * 0.6;
       const innerLeftX = tipX + Math.cos(angle + Math.PI * 0.85) * innerSize;
       const innerLeftY = tipY + Math.sin(angle + Math.PI * 0.85) * innerSize;
       const innerRightX = tipX + Math.cos(angle - Math.PI * 0.85) * innerSize;
       const innerRightY = tipY + Math.sin(angle - Math.PI * 0.85) * innerSize;
-      
+
       this.graphics.poly([tipX, tipY, leftX, leftY, innerLeftX, innerLeftY, innerRightX, innerRightY, rightX, rightY]);
       this.graphics.fill({ color });
     }
@@ -229,7 +229,7 @@ export class GameLine {
 
   update(delta: number): 'cleared' | 'completed-backward' | null {
     const dt = delta / 60;
-    
+
     if (this.state.status === 'cleared') {
       // Continue gliding seamlessly off the canvas, but accelerate the exit speed
       // for a fast, punchy visual finish that doesn't linger on the screen
@@ -237,7 +237,7 @@ export class GameLine {
       this.currentTailPos += speed;
       this.updateCurrentPoints();
       this.draw();
-      
+
       // Hide completely only when it is safely extremely far off screen
       if (this.currentTailPos > this.originalLength + GAME_CONFIG.logicalWidth * 2) {
         this.container.visible = false;
@@ -263,7 +263,7 @@ export class GameLine {
 
     // Trigger the 'cleared' event very early (snappy fast feel)
     // 60px ensures the tail has just left its immediate grid cell area
-    const triggerDistance = 60; 
+    const triggerDistance = 60;
     if (this.currentTailPos > this.originalLength + triggerDistance) {
       this.state.status = 'cleared';
       this.state.isAnimating = false;

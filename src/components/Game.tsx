@@ -26,6 +26,8 @@ const DEFAULT_THEME: GameThemeConfig = {
   voucherTheme: 'purple',
   rewardValue: '$100',
   voucherLabel: 'GIFT VOUCHER',
+  campaignBgColor: '#1A1A1A',
+  showVignette: true,
   campaignBgLandscape: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a4d?q=80&w=2074&auto=format&fit=crop',
   campaignBgPortrait: 'https://images.unsplash.com/photo-1516214104703-d2507f0147e8?q=80&w=1000&auto=format&fit=crop',
   bgFit: 'cover',
@@ -123,15 +125,16 @@ export function Game({
   return (
     <div className="builder-layout">
       {/* Left Area: Game Canvas */}
-      <div 
+      <div
         className="builder-main"
         style={{
           '--bg-landscape': theme.campaignBgLandscape ? `url(${theme.campaignBgLandscape})` : 'none',
           '--bg-portrait': theme.campaignBgPortrait ? `url(${theme.campaignBgPortrait})` : 'none',
           '--bg-fit': theme.bgFit,
+          backgroundColor: theme.campaignBgColor,
         } as React.CSSProperties}
       >
-        <div className="builder-main-vignette"></div>
+        <div className="builder-main-vignette" style={{ opacity: theme.showVignette ? 1 : 0, transition: 'opacity 0.3s' }}></div>
         <div className="builder-header">
           <div className="breadcrumb">
             <span className="back-arrow">←</span>
@@ -166,9 +169,9 @@ export function Game({
             <LivesDisplay lives={lives} maxLives={GAME_CONFIG.maxLives} />
           </div>
           <div className="game-canvas-area">
-            <div 
-              className="game-canvas-container" 
-              style={{ 
+            <div
+              className="game-canvas-container"
+              style={{
                 backgroundColor: `rgba(${(theme.bgColor >> 16) & 255}, ${(theme.bgColor >> 8) & 255}, ${theme.bgColor & 255}, ${theme.bgOpacity})`,
                 borderRadius: `${theme.canvasRadius}px`,
                 boxShadow: theme.bgOpacity === 0 ? 'none' : undefined,
@@ -176,23 +179,23 @@ export function Game({
             >
               <div ref={containerRef} className="canvas-mount" />
 
-            {gameStatus === 'idle' && (
-              <div className="start-overlay">
-                <div className="start-card">
-                  <h1 className="start-title">ARROWS</h1>
-                  <p className="start-subtitle">
-                    Tap arrows to send them forward.<br />
-                    Clear all without collisions!
-                  </p>
-                  <button className="start-button" onClick={handleStart}>
-                    PLAY
-                  </button>
+              {gameStatus === 'idle' && (
+                <div className="start-overlay">
+                  <div className="start-card">
+                    <h1 className="start-title">ARROWS</h1>
+                    <p className="start-subtitle">
+                      Tap arrows to send them forward.<br />
+                      Clear all without collisions!
+                    </p>
+                    <button className="start-button" onClick={handleStart}>
+                      PLAY
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Right Area: Sidebar Config */}
