@@ -62,11 +62,22 @@ function generatePath(
   occupied: Set<string>,
   bounds: { cols: number; rows: number }
 ): LineData | null {
-  const maxAttempts = 50;
+  const maxAttempts = 150;
+  const centerCol = Math.floor(bounds.cols / 2);
+  const centerRow = Math.floor(bounds.rows / 2);
+  const maxRadius = Math.min(bounds.cols, bounds.rows) / 2 - 2;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const col = rand(1, bounds.cols - 2);
-    const row = rand(1, bounds.rows - 2);
+    // Growing radius: start tight at the center, expand outward as attempts fail
+    const progress = attempt / maxAttempts;
+    const currentMaxRadius = Math.max(1, Math.floor(maxRadius * Math.pow(progress, 0.5))); // Square root grows moderately fast
+    
+    // Pick a random offset within currentMaxRadius
+    const offsetCol = rand(-currentMaxRadius, currentMaxRadius);
+    const offsetRow = rand(-currentMaxRadius, currentMaxRadius);
+    
+    const col = Math.min(Math.max(1, centerCol + offsetCol), bounds.cols - 2);
+    const row = Math.min(Math.max(1, centerRow + offsetRow), bounds.rows - 2);
 
     if (occupied.has(`${col},${row}`)) continue;
 
@@ -74,7 +85,7 @@ function generatePath(
     let currentDir = -1;
     let isValid = true;
     // Increase segments for more zig-zags (more interlocking)
-    const numSegments = rand(2, 4);
+    const numSegments = rand(1, 3);
 
     for (let s = 0; s < numSegments; s++) {
       const candidates = currentDir === -1
@@ -98,8 +109,8 @@ function generatePath(
       }
 
       const dir = validDirs[0];
-      // Make segments longer so they span across the board and block each other
-      const segmentLen = rand(2, 4);
+      // Make segments shorter to keep them compact and blocky
+      const segmentLen = rand(2, 3);
 
       for (let step = 0; step < segmentLen; step++) {
         const { dc, dr } = DIR_DELTA[dir];
@@ -167,9 +178,9 @@ export function generateLevel(targetCount?: number): GeneratedLevel {
   const lines: LineData[] = [];
   
   // Use a denser target count by default
-  const actualCount = targetCount || rand(GAME_CONFIG.minLines, GAME_CONFIG.maxLines);
+  const actualCount = targetCount || rand(GAME_CONFIG.minLines + 5, GAME_CONFIG.maxLines + 10);
 
-  for (let i = 0; i < actualCount + 15; i++) {
+  for (let i = 0; i < actualCount + 30; i++) {
     const line = generatePath(lines.length, occupied, bounds);
     if (line) lines.push(line);
     if (lines.length >= actualCount) break;
