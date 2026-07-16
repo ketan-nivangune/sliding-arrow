@@ -170,7 +170,7 @@ export class ArrowGameEngine {
 
   private handleClick(localX: number, localY: number) {
     if (!this.isPlaying) return;
-    soundManager.playTap(); // Play tap sound on interaction
+    
     for (const line of this.lines) {
       if (line.containsPoint(localX, localY)) {
         line.startForward();
@@ -178,6 +178,9 @@ export class ArrowGameEngine {
         return;
       }
     }
+    
+    // Play tap sound ONLY if no line was hit
+    soundManager.playTap(); 
   }
 
   private triggerShake() {

@@ -6,16 +6,37 @@ export class SoundManager {
     // AudioContext is initialized on first user interaction to comply with browser autoplay policies
   }
 
+  private masterGain: GainNode | null = null;
+  private compressor: DynamicsCompressorNode | null = null;
+
   private initContext() {
     if (!this.ctx) {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioContextClass) {
         this.ctx = new AudioContextClass();
+        
+        // Setup master bus to prevent digital clipping
+        this.compressor = this.ctx.createDynamicsCompressor();
+        this.compressor.threshold.value = -12;
+        this.compressor.knee.value = 30;
+        this.compressor.ratio.value = 12;
+        this.compressor.attack.value = 0.003;
+        this.compressor.release.value = 0.25;
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.8;
+
+        this.masterGain.connect(this.compressor);
+        this.compressor.connect(this.ctx.destination);
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+  }
+
+  private getDestination(): AudioNode {
+    return this.masterGain || (this.ctx ? this.ctx.destination : null as any);
   }
 
   public enable() {
@@ -53,11 +74,11 @@ export class SoundManager {
     punchOsc.frequency.setValueAtTime(120, this.ctx.currentTime);
     punchOsc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.15);
     
-    punchGain.gain.setValueAtTime(vol * 1.5, this.ctx.currentTime);
+    punchGain.gain.setValueAtTime(vol * 0.8, this.ctx.currentTime);
     punchGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
     
     punchOsc.connect(punchGain);
-    punchGain.connect(this.ctx.destination);
+    punchGain.connect(this.getDestination());
     punchOsc.start();
     punchOsc.stop(this.ctx.currentTime + 0.15);
     
@@ -76,7 +97,7 @@ export class SoundManager {
 
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.getDestination());
 
     noise.start();
   }
@@ -109,7 +130,7 @@ export class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
     
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.getDestination());
     
     osc.start();
     osc.stop(this.ctx.currentTime + 0.1);
@@ -134,7 +155,7 @@ export class SoundManager {
     
     noise.connect(noiseFilter);
     noiseFilter.connect(noiseGain);
-    noiseGain.connect(this.ctx.destination);
+    noiseGain.connect(this.getDestination());
     
     noise.start();
   }
@@ -168,7 +189,7 @@ export class SoundManager {
         gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
         
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.getDestination());
         
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
@@ -193,7 +214,7 @@ export class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 1.0);
     
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.getDestination());
     
     osc.start();
     osc.stop(this.ctx.currentTime + 1.0);
