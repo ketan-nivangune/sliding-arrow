@@ -65,4 +65,5 @@ export interface GameThemeConfig {
   // Campaign Environment
   campaignBgLandscape: string | null;
   campaignBgPortrait: string | null;
+  bgFit: 'cover' | 'contain';
 }

@@ -28,6 +28,7 @@ const DEFAULT_THEME: GameThemeConfig = {
   voucherLabel: 'GIFT VOUCHER',
   campaignBgLandscape: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a4d?q=80&w=2074&auto=format&fit=crop',
   campaignBgPortrait: 'https://images.unsplash.com/photo-1516214104703-d2507f0147e8?q=80&w=1000&auto=format&fit=crop',
+  bgFit: 'cover',
 };
 
 export function Game({
@@ -127,8 +128,10 @@ export function Game({
         style={{
           '--bg-landscape': theme.campaignBgLandscape ? `url(${theme.campaignBgLandscape})` : 'none',
           '--bg-portrait': theme.campaignBgPortrait ? `url(${theme.campaignBgPortrait})` : 'none',
+          '--bg-fit': theme.bgFit,
         } as React.CSSProperties}
       >
+        <div className="builder-main-vignette"></div>
         <div className="builder-header">
           <div className="breadcrumb">
             <span className="back-arrow">←</span>

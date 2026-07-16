@@ -201,6 +201,20 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
         {theme.campaignBgPortrait && <div style={{marginTop: '8px', fontSize: '12px', color: '#666'}}>✓ Uploaded</div>}
       </div>
 
+      <div className="sidebar-section">
+        <label>Background Fit</label>
+        <div className="toggle-group">
+          <button
+            className={theme.bgFit === 'cover' ? 'active' : ''}
+            onClick={() => update({ bgFit: 'cover' })}
+          >Fill</button>
+          <button
+            className={theme.bgFit === 'contain' ? 'active' : ''}
+            onClick={() => update({ bgFit: 'contain' })}
+          >Fit</button>
+        </div>
+      </div>
+
       <hr className="divider" />
 
       <div className="sidebar-header">
