@@ -190,7 +190,7 @@ export function Game({
       </div>
 
       {/* Right Area: Sidebar Config */}
-      {isSidebarOpen && <Sidebar theme={theme} onThemeChange={setTheme} />}
+      {isSidebarOpen && <Sidebar theme={theme} onThemeChange={setTheme} onClose={() => setIsSidebarOpen(false)} />}
 
       <GameOverlay result={winResult} theme={theme} onClose={handleCloseOverlay} />
     </div>
