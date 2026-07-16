@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { WinResult, GameThemeConfig } from '../engine/types';
+import { soundManager } from '../engine/SoundManager';
 
 interface GameOverlayProps {
   result: WinResult | null;
@@ -15,7 +16,14 @@ export function GameOverlay({ result, theme, onClose }: GameOverlayProps) {
     if (result) {
       setVisible(false);
       setExiting(false);
-      const t = setTimeout(() => setVisible(true), 50);
+      const t = setTimeout(() => {
+        setVisible(true);
+        if (result.label !== 'Try Again') {
+          soundManager.playPopupWin();
+        } else {
+          soundManager.playPopupLose();
+        }
+      }, 50);
       return () => clearTimeout(t);
     }
     setVisible(false);
