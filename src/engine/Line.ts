@@ -17,8 +17,7 @@ export class GameLine {
   private isFlashing = false;
   private flashOn = false;
 
-  private exitTimer = 0;
-  private isExiting = false;
+
   
   private theme: GameThemeConfig;
 
@@ -172,24 +171,7 @@ export class GameLine {
     }
   }
 
-  private startExit() {
-    this.isExiting = true;
-    this.exitTimer = GAME_CONFIG.exitDuration;
-  }
 
-  private updateExit(dt: number) {
-    if (!this.isExiting) return;
-    this.exitTimer -= dt;
-    const t = Math.max(0, this.exitTimer / GAME_CONFIG.exitDuration);
-    this.container.scale.set(0.7 + 0.3 * t);
-    this.container.alpha = t;
-    if (this.exitTimer <= 0) {
-      this.isExiting = false;
-      this.container.scale.set(1);
-      this.container.alpha = 1;
-      this.graphics.clear();
-    }
-  }
 
   addToStage(parent: PIXI.Container) { parent.addChild(this.container); }
   removeFromStage() { this.container.parent?.removeChild(this.container); }
@@ -247,7 +229,6 @@ export class GameLine {
 
   update(delta: number): 'cleared' | 'completed-backward' | null {
     const dt = delta / 60;
-    if (this.isExiting) this.updateExit(dt);
     
     if (this.state.status === 'cleared') {
       // Continue gliding seamlessly off the canvas, but accelerate the exit speed

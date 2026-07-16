@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ArrowGameEngine } from '../engine/ArrowGameEngine';
 import { usePixiCanvas } from '../hooks/usePixiCanvas';
 import { LivesDisplay } from './LivesDisplay';
@@ -38,8 +38,7 @@ export function Game({
   const [lives, setLives] = useState(GAME_CONFIG.maxLives);
   const [gameStatus, setGameStatus] = useState<'idle' | 'playing' | 'won' | 'lost'>('idle');
   const [winResult, setWinResult] = useState<WinResult | null>(null);
-  const [totalLines, setTotalLines] = useState(0);
-  const [linesRemaining, setLinesRemaining] = useState(0);
+
   const [shakeHeader, setShakeHeader] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -66,8 +65,8 @@ export function Game({
     setShakeHeader(true);
   }, []);
 
-  const handleLineCleared = useCallback((remaining: number) => {
-    setLinesRemaining(remaining);
+  const handleLineCleared = useCallback(() => {
+    // Left empty since progress was removed
   }, []);
 
   useEffect(() => {
@@ -101,9 +100,6 @@ export function Game({
     const engine = engineRef.current;
     if (!engine) return;
     engine.startGame();
-    const total = engine.getLinesRemaining();
-    setTotalLines(total);
-    setLinesRemaining(total);
     setLives(GAME_CONFIG.maxLives);
     setGameStatus('playing');
   };
@@ -112,9 +108,6 @@ export function Game({
     const engine = engineRef.current;
     if (!engine) return;
     engine.resetGame();
-    const total = engine.getLinesRemaining();
-    setTotalLines(total);
-    setLinesRemaining(total);
     setLives(GAME_CONFIG.maxLives);
     setGameStatus('playing');
     setWinResult(null);
@@ -124,8 +117,6 @@ export function Game({
     setWinResult(null);
     handleRestart();
   };
-
-  const progress = totalLines > 0 ? ((totalLines - linesRemaining) / totalLines) * 100 : 0;
 
   return (
     <div className="builder-layout">
