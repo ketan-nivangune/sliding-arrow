@@ -42,6 +42,7 @@ export function Game({
   const [lives, setLives] = useState(GAME_CONFIG.maxLives);
   const [gameStatus, setGameStatus] = useState<'idle' | 'playing' | 'won' | 'lost'>('idle');
   const [winResult, setWinResult] = useState<WinResult | null>(null);
+  const [difficulty, setDifficulty] = useState<string>('medium');
 
   const [shakeHeader, setShakeHeader] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -100,9 +101,17 @@ export function Game({
     }
   }, [theme, engineRef]);
 
+  // Regenerate level when difficulty changes (only in idle state)
+  useEffect(() => {
+    if (engineRef.current && gameStatus === 'idle') {
+      engineRef.current.setDifficulty(difficulty);
+    }
+  }, [difficulty, gameStatus, engineRef]);
+
   const handleStart = () => {
     const engine = engineRef.current;
     if (!engine) return;
+    engine.setDifficulty(difficulty);
     engine.startGame();
     setLives(GAME_CONFIG.maxLives);
     setGameStatus('playing');
@@ -111,6 +120,7 @@ export function Game({
   const handleRestart = () => {
     const engine = engineRef.current;
     if (!engine) return;
+    engine.setDifficulty(difficulty);
     engine.resetGame();
     setLives(GAME_CONFIG.maxLives);
     setGameStatus('playing');
@@ -199,7 +209,15 @@ export function Game({
       </div>
 
       {/* Right Area: Sidebar Config */}
-      {isSidebarOpen && <Sidebar theme={theme} onThemeChange={setTheme} onClose={() => setIsSidebarOpen(false)} />}
+      {isSidebarOpen && (
+        <Sidebar
+          theme={theme}
+          onThemeChange={setTheme}
+          onClose={() => setIsSidebarOpen(false)}
+          difficulty={difficulty}
+          onDifficultyChange={setDifficulty}
+        />
+      )}
 
       <GameOverlay result={winResult} theme={theme} onClose={handleCloseOverlay} />
     </div>

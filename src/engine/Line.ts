@@ -2,6 +2,8 @@ import * as PIXI from 'pixi.js';
 import { GAME_CONFIG, FLASH_DURATION, pointToSegmentDistance } from './config';
 import type { Point, GameLineState, GameThemeConfig } from './types';
 
+const DESTROY_DELAY = 5; // seconds before auto-destroy
+
 export class GameLine {
   state: GameLineState;
   private container: PIXI.Container;
@@ -16,6 +18,8 @@ export class GameLine {
   private flashTimer = 0;
   private isFlashing = false;
   private flashOn = false;
+
+  private destroyTimer = -1; // -1 = inactive
 
 
 
@@ -171,8 +175,6 @@ export class GameLine {
     }
   }
 
-
-
   addToStage(parent: PIXI.Container) { parent.addChild(this.container); }
   removeFromStage() { this.container.parent?.removeChild(this.container); }
 
@@ -194,6 +196,7 @@ export class GameLine {
     this.state.isAnimating = true;
     this.isFlashing = false;
     this.flashOn = false;
+    this.destroyTimer = DESTROY_DELAY;
     this.draw();
   }
 
@@ -204,6 +207,7 @@ export class GameLine {
     this.isFlashing = true;
     this.flashTimer = FLASH_DURATION;
     this.flashOn = true;
+    this.destroyTimer = -1; // stop countdown
     this.draw();
   }
 
@@ -227,7 +231,7 @@ export class GameLine {
     return false;
   }
 
-  update(delta: number): 'cleared' | 'completed-backward' | null {
+  update(delta: number): 'cleared' | 'completed-backward' | 'timed-out' | null {
     const dt = delta / 60;
 
     if (this.state.status === 'cleared') {
@@ -251,6 +255,20 @@ export class GameLine {
       if (this.flashTimer <= 0) { this.isFlashing = false; this.flashOn = false; }
     }
 
+    // Destroy timer countdown
+    if (this.destroyTimer > 0 && this.state.status === 'moving-forward') {
+      this.destroyTimer -= dt;
+      if (this.destroyTimer <= 0) {
+        this.destroyTimer = -1;
+        this.state.status = 'idle';
+        this.state.hasCollided = false;
+        this.state.lostLifeForCollision = false;
+        this.state.isAnimating = false;
+        this.draw();
+        return 'timed-out';
+      }
+    }
+
     if (this.state.status === 'moving-forward') return this.updateForward(dt);
     if (this.state.status === 'moving-backward') return this.updateBackward(dt);
     return null;
@@ -267,6 +285,8 @@ export class GameLine {
     if (this.currentTailPos > this.originalLength + triggerDistance) {
       this.state.status = 'cleared';
       this.state.isAnimating = false;
+      this.destroyTimer = -1;
+      this.draw();
       return 'cleared';
     }
     this.draw();
@@ -285,6 +305,7 @@ export class GameLine {
       this.state.isAnimating = false;
       this.isFlashing = false;
       this.flashOn = false;
+      this.destroyTimer = -1;
       this.draw();
       return 'completed-backward';
     }

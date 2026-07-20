@@ -1,10 +1,13 @@
 import React from 'react';
 import type { GameThemeConfig } from '../engine/types';
+import { PROFILES } from '../engine/difficulty';
 
 interface SidebarProps {
   theme: GameThemeConfig;
   onThemeChange: (newTheme: GameThemeConfig) => void;
   onClose: () => void;
+  difficulty: string;
+  onDifficultyChange: (difficulty: string) => void;
 }
 
 const ColorPickerInput = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => (
@@ -32,7 +35,7 @@ const ColorPickerInput = ({ label, value, onChange }: { label: string, value: st
   </div>
 );
 
-export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
+export function Sidebar({ theme, onThemeChange, onClose, difficulty, onDifficultyChange }: SidebarProps) {
 
   const update = (updates: Partial<GameThemeConfig>) => {
     onThemeChange({ ...theme, ...updates });
@@ -51,6 +54,21 @@ export function Sidebar({ theme, onThemeChange, onClose }: SidebarProps) {
       <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3>Arrow Style</h3>
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close settings">✕</button>
+      </div>
+
+      <div className="sidebar-section">
+        <label>Difficulty</label>
+        <div className="toggle-group">
+          {Object.keys(PROFILES).map((key) => (
+            <button
+              key={key}
+              className={difficulty === key ? 'active' : ''}
+              onClick={() => onDifficultyChange(key)}
+            >
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       <ColorPickerInput

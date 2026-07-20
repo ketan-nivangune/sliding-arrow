@@ -3,7 +3,7 @@ export interface Point {
   y: number;
 }
 
-export type LineStatus = 'idle' | 'moving-forward' | 'moving-backward' | 'cleared';
+export type LineStatus = 'idle' | 'moving-forward' | 'moving-backward' | 'cleared' | 'timed-out';
 
 export interface LineData {
   id: number;

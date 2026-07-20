@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { GameLine } from './Line';
-import { generateLevel } from './LevelGenerator';
+import { generateLevel, generateLevelWithDifficulty } from './LevelGenerator';
 import { GAME_CONFIG } from './config';
 import type { GameCallbacks, GameThemeConfig } from './types';
 import { soundManager } from './SoundManager';
@@ -22,13 +22,15 @@ export class ArrowGameEngine {
   private hitStopCounter = 0;
 
   private currentTheme: GameThemeConfig | null = null;
+  private difficulty: string = 'medium';
 
   setCallbacks(cb: GameCallbacks) {
     this.callbacks = cb;
   }
 
-  async init(canvas: HTMLCanvasElement, initialTheme: GameThemeConfig): Promise<void> {
+  async init(canvas: HTMLCanvasElement, initialTheme: GameThemeConfig, difficulty?: string): Promise<void> {
     this.currentTheme = initialTheme;
+    if (difficulty) this.difficulty = difficulty;
     if (this.app) {
       try { this.app.destroy(true); } catch { /* ignore */ }
     }
@@ -123,6 +125,15 @@ export class ArrowGameEngine {
     this.isPlaying = true;
   }
 
+  setDifficulty(difficulty: string) {
+    this.difficulty = difficulty;
+    // Regenerate level immediately so the new difficulty is visible
+    if (this.initialized && this.currentTheme) {
+      this.clearLines();
+      this.loadLevel();
+    }
+  }
+
   private drawBackgroundGrid() {
     if (!this.currentTheme) return;
     const bg = this.backgroundGrid;
@@ -151,7 +162,7 @@ export class ArrowGameEngine {
 
   private loadLevel() {
     if (!this.currentTheme) return;
-    const level = generateLevel();
+    const level = generateLevelWithDifficulty(this.difficulty);
     for (const lineData of level.lines) {
       const gameLine = new GameLine(lineData.id, lineData.points, this.currentTheme);
       gameLine.addToStage(this.rootContainer);
@@ -235,6 +246,17 @@ export class ArrowGameEngine {
           this.isPlaying = false;
           soundManager.playWin(); // Play win sound
           this.callbacks.onGameWon?.({ won: true, linesCleared: this.lines.length, livesRemaining: this.lives });
+          return;
+        }
+      } else if (result === 'timed-out') {
+        soundManager.playCollision();
+        this.triggerShake();
+        this.lives--;
+        this.callbacks.onCollision?.(this.lives);
+        if (this.lives <= 0) {
+          this.isPlaying = false;
+          soundManager.playLose();
+          this.callbacks.onGameLost?.({ won: false, linesCleared: 0, livesRemaining: 0 });
           return;
         }
       }

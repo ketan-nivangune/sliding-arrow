@@ -554,6 +554,39 @@ input:checked+.slider:before {
   line-height: 1.5;
 }
 
+.difficulty-selector {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.difficulty-btn {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.difficulty-btn:hover {
+  border-color: #aaa;
+  color: #333;
+}
+
+.difficulty-btn.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: white;
+}
+
 .start-button {
   margin-top: 10px;
   padding: 12px 40px;

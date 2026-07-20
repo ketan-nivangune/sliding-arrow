@@ -23,13 +23,13 @@ export const GAME_CONFIG = {
   gridPadding: 50,
   
   // Movement
-  lineSpeed: 550, // fast, snappy movement
+  lineSpeed: 800, // fast, snappy movement
 
   // Collision
   collisionThreshold: 15,
 
   // Game rules
-  maxLives: 5,
+  maxLives: 3,
   minLines: 8,
   maxLines: 12, // denser levels
 
