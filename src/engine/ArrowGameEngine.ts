@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { GameLine } from './Line';
-import { generateLevel, generateLevelWithDifficulty } from './LevelGenerator';
+import { generateLevelWithDifficulty } from './LevelGenerator';
 import { GAME_CONFIG } from './config';
 import type { GameCallbacks, GameThemeConfig } from './types';
 import { soundManager } from './SoundManager';

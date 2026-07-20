@@ -1,6 +1,6 @@
 import { GAME_CONFIG, getGridBounds, gridToPixel } from './config';
 import type { LineData, Point } from './types';
-import { PROFILES, selectBestCandidate, computeLevelMetrics } from './difficulty';
+import { PROFILES, selectBestCandidate } from './difficulty';
 
 interface GridCell {
   col: number;

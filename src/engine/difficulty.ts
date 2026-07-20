@@ -1,4 +1,4 @@
-import { GAME_CONFIG, getGridBounds, gridToPixel } from './config';
+import { GAME_CONFIG, getGridBounds } from './config';
 import type { LineData, Point } from './types';
 
 // --- Difficulty Profiles ---
