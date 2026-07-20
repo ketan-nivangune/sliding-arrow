@@ -27,23 +27,20 @@ function shuffle<T>(array: T[]): T[] {
   return arr;
 }
 
-// Relaxed: only need1 clear cell ahead, not the full ray.
-// Cycles are prevented by the validator, not the generator.
-function hasMinEscape(
-  head: GridCell,
-  dirIndex: number,
-  occupied: Set<string>,
-  selfCells: Set<string>,
-  bounds: { cols: number; rows: number }
-): boolean {
-  const { dc, dr } = DIR_DELTA[dirIndex];
-  const c = head.col + dc;
-  const r = head.row + dr;
-  const key = `${c},${r}`;
-  return c >= 0 && c < bounds.cols && r >= 0 && r < bounds.rows && (!occupied.has(key) || selfCells.has(key));
+function wouldSelfLoop(path: GridCell[], newCol: number, newRow: number): boolean {
+  if (path.length < 2) return false;
+  const prev = path[path.length - 2];
+  // Prevent immediate U-turn
+  if (newCol === prev.col && newRow === prev.row) return true;
+  // Prevent crossing own body (check all cells except the tail — tail adjacency is expected)
+  for (let i = 0; i < path.length - 1; i++) {
+    const dx = Math.abs(newCol - path[i].col);
+    const dy = Math.abs(newRow - path[i].row);
+    if (dx + dy <= 1) return true;
+  }
+  return false;
 }
 
-// Check if the dependency graph has a cycle (deadlock)
 function hasCycle(lines: LineData[], bounds: { cols: number; rows: number }): boolean {
   const padding = GAME_CONFIG.gridPadding;
   const size = GAME_CONFIG.gridSize;
@@ -75,7 +72,6 @@ function hasCycle(lines: LineData[], bounds: { cols: number; rows: number }): bo
     return { id: l.id, bodyCells, head: { c: hc, r: hr }, dir: { dc, dr } };
   });
 
-  // Build adjacency: edge from A to B means A depends on B (B blocks A's escape)
   const adj = new Map<number, number[]>();
   for (const line of gridLines) {
     adj.set(line.id, []);
@@ -92,7 +88,6 @@ function hasCycle(lines: LineData[], bounds: { cols: number; rows: number }): bo
     }
   }
 
-  // DFS cycle detection
   const WHITE = 0, GRAY = 1, BLACK = 2;
   const color = new Map<number, number>();
   for (const id of adj.keys()) color.set(id, WHITE);
@@ -100,7 +95,7 @@ function hasCycle(lines: LineData[], bounds: { cols: number; rows: number }): bo
   function dfs(u: number): boolean {
     color.set(u, GRAY);
     for (const v of adj.get(u) ?? []) {
-      if (color.get(v) === GRAY) return true; // back edge = cycle
+      if (color.get(v) === GRAY) return true;
       if (color.get(v) === WHITE && dfs(v)) return true;
     }
     color.set(u, BLACK);
@@ -119,22 +114,17 @@ function generatePath(
   bounds: { cols: number; rows: number }
 ): LineData | null {
   const maxAttempts = 200;
-  const centerCol = Math.floor(bounds.cols / 2);
-  const centerRow = Math.floor(bounds.rows / 2);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    // Center-biased placement
-    const innerRadius = Math.floor(Math.min(bounds.cols, bounds.rows) * 0.35);
-    const col = Math.min(Math.max(1, centerCol + rand(-innerRadius, innerRadius)), bounds.cols - 2);
-    const row = Math.min(Math.max(1, centerRow + rand(-innerRadius, innerRadius)), bounds.rows - 2);
+    const col = rand(0, bounds.cols - 1);
+    const row = rand(0, bounds.rows - 1);
 
     if (occupied.has(`${col},${row}`)) continue;
 
     const pathCells: GridCell[] = [{ col, row }];
-    const selfCells = new Set<string>([`${col},${row}`]);
     let currentDir = -1;
     let isValid = true;
-    const numSegments = rand(2, 5);
+    const numSegments = rand(2, 4);
 
     for (let s = 0; s < numSegments; s++) {
       const candidates = currentDir === -1
@@ -146,18 +136,18 @@ function generatePath(
         const nc = pathCells[pathCells.length - 1].col + dc;
         const nr = pathCells[pathCells.length - 1].row + dr;
         if (nc < 0 || nc >= bounds.cols || nr < 0 || nr >= bounds.rows) return false;
-        const key = `${nc},${nr}`;
-        if (occupied.has(key) && !selfCells.has(key)) return false;
+        if (occupied.has(`${nc},${nr}`)) return false;
+        if (wouldSelfLoop(pathCells, nc, nr)) return false;
         return true;
       });
 
       if (validDirs.length === 0) {
-        if (pathCells.length < 3) isValid = false;
+        if (pathCells.length < 4) isValid = false;
         break;
       }
 
       const dir = validDirs[0];
-      const segmentLen = rand(2, 5);
+      const segmentLen = rand(2, 4);
 
       for (let step = 0; step < segmentLen; step++) {
         const { dc, dr } = DIR_DELTA[dir];
@@ -165,18 +155,14 @@ function generatePath(
         const nc = lastCell.col + dc;
         const nr = lastCell.row + dr;
         if (nc < 0 || nc >= bounds.cols || nr < 0 || nr >= bounds.rows) break;
-        const key = `${nc},${nr}`;
-        if (occupied.has(key) && !selfCells.has(key)) break;
+        if (occupied.has(`${nc},${nr}`)) break;
+        if (wouldSelfLoop(pathCells, nc, nr)) break;
         pathCells.push({ col: nc, row: nr });
-        selfCells.add(key);
       }
       currentDir = dir;
     }
 
-    if (isValid && pathCells.length >= 3 && currentDir !== -1) {
-      const head = pathCells[pathCells.length - 1];
-      if (!hasMinEscape(head, currentDir, occupied, selfCells, bounds)) continue;
-
+    if (isValid && pathCells.length >= 4 && currentDir !== -1) {
       const points: Point[] = [];
       points.push(gridToPixel(pathCells[0].col, pathCells[0].row));
       let lastDir = -1;
@@ -193,7 +179,7 @@ function generatePath(
           lastDir = dir;
         }
       }
-      points.push(gridToPixel(head.col, head.row));
+      points.push(gridToPixel(pathCells[pathCells.length - 1].col, pathCells[pathCells.length - 1].row));
 
       for (const cell of pathCells) occupied.add(`${cell.col},${cell.row}`);
       return { id, points };
@@ -211,7 +197,7 @@ function generateRawLines(targetCount: number): LineData[] {
   const occupied = new Set<string>();
   const lines: LineData[] = [];
 
-  for (let i = 0; i < targetCount + 50; i++) {
+  for (let i = 0; i < targetCount + 100; i++) {
     const line = generatePath(lines.length, occupied, bounds);
     if (line) lines.push(line);
     if (lines.length >= targetCount) break;
@@ -221,10 +207,10 @@ function generateRawLines(targetCount: number): LineData[] {
 }
 
 const FALLBACK_LEVEL: LineData[] = [
-  { id: 0, points: [gridToPixel(2, 2), gridToPixel(4, 2), gridToPixel(4, 4)] },
-  { id: 1, points: [gridToPixel(5, 4), gridToPixel(5, 6), gridToPixel(7, 6)] },
-  { id: 2, points: [gridToPixel(2, 5), gridToPixel(2, 7), gridToPixel(4, 7)] },
-  { id: 3, points: [gridToPixel(8, 2), gridToPixel(8, 4), gridToPixel(6, 4)] },
+  { id: 0, points: [gridToPixel(1, 1), gridToPixel(4, 1), gridToPixel(4, 4)] },
+  { id: 1, points: [gridToPixel(6, 4), gridToPixel(6, 7), gridToPixel(8, 7)] },
+  { id: 2, points: [gridToPixel(1, 6), gridToPixel(1, 8), gridToPixel(4, 8)] },
+  { id: 3, points: [gridToPixel(8, 1), gridToPixel(8, 3), gridToPixel(6, 3)] },
 ];
 
 export function generateLevel(targetCount?: number): GeneratedLevel {
@@ -233,7 +219,6 @@ export function generateLevel(targetCount?: number): GeneratedLevel {
   return { lines: lines.length >= 4 ? lines : FALLBACK_LEVEL };
 }
 
-// Generate candidates, reject any with cycles, then pick the best match
 export function generateLevelWithDifficulty(
   profileName: string = 'medium',
   candidateCount?: number
@@ -241,13 +226,12 @@ export function generateLevelWithDifficulty(
   const profile = PROFILES[profileName] ?? PROFILES.medium;
   const targetCount = rand(profile.minLines, profile.maxLines);
   const bounds = getGridBounds();
-  const actualCandidateCount = candidateCount ?? (profileName === 'hard' ? 60 : profileName === 'medium' ? 40 : 30);
+  const actualCandidateCount = candidateCount ?? (profileName === 'hard' ? 80 : profileName === 'medium' ? 60 : 40);
 
   const valid: LineData[][] = [];
   for (let i = 0; i < actualCandidateCount; i++) {
     const lines = generateRawLines(targetCount);
     if (lines.length < 4) continue;
-    // Reject levels with dependency cycles (deadlocks)
     if (hasCycle(lines, bounds)) continue;
     valid.push(lines);
   }

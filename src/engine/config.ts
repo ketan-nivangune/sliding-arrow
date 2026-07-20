@@ -19,8 +19,8 @@ export const GAME_CONFIG = {
   cornerRadius: 12, // for smooth path joints
 
   // Grid mechanics for tight packing
-  gridSize: 50,
-  gridPadding: 50,
+  gridSize: 35,
+  gridPadding: 30,
   
   // Movement
   lineSpeed: 800, // fast, snappy movement
@@ -30,8 +30,8 @@ export const GAME_CONFIG = {
 
   // Game rules
   maxLives: 3,
-  minLines: 8,
-  maxLines: 12, // denser levels
+  minLines: 10,
+  maxLines: 18, // denser levels
 
   // Juice
   shakeIntensity: 6,

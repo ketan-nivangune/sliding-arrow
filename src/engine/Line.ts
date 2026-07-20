@@ -142,7 +142,7 @@ export class GameLine {
     const prev = pts[pts.length - 2];
     const angle = Math.atan2(head.y - prev.y, head.x - prev.x);
     // Make head size proportional to thickness
-    const size = Math.max(16, this.theme.arrowThickness * 1.8);
+    const size = Math.max(20, this.theme.arrowThickness * 2.2);
 
     const tipX = head.x + Math.cos(angle) * (size * 0.5);
     const tipY = head.y + Math.sin(angle) * (size * 0.5);
